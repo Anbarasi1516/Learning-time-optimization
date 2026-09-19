@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Learning Time Optimizer</title>
 
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css?v=4" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
@@ -14,6 +14,8 @@
   <!-- HEADER -->
   <header>
     <h1>Learning Time Optimizer</h1>
+
+    <button id="themeToggle" class="theme-toggle" type="button" aria-label="Switch theme">Night theme</button>
 
     <nav id="mainNav" class="hidden">
       <button data-page="todayPage">Today's Work</button>
@@ -98,6 +100,15 @@
         </div>
       </div>
 
+      <div class="today-hero">
+        <div class="today-hero-copy">
+          <p class="eyebrow">A focused day starts here</p>
+          <h3>Make today count, one session at a time.</h3>
+          <p>Build a simple rhythm around your subjects and turn your next hour into visible progress.</p>
+        </div>
+        <div class="hero-spark" aria-hidden="true">✦</div>
+      </div>
+
       <div id="todayPlanList"></div>
 
       <div id="secondaryContainer" class="hidden">
@@ -114,9 +125,10 @@
         <h2>Add Subjects</h2>
       </div>
 
-      <div class="card">
+      <div class="subjects-layout">
+        <div class="card subject-form-card">
 
-        <form id="subjectForm">
+          <form id="subjectForm">
 
           <input
             type="text"
@@ -145,8 +157,15 @@
 
           <button type="submit">Add Subject</button>
 
-        </form>
+          </form>
 
+        </div>
+        <aside class="learning-image learning-image-subjects">
+          <div>
+            <p class="eyebrow">Your study space</p>
+            <h3>Give every subject a place in your plan.</h3>
+          </div>
+        </aside>
       </div>
 
       <div id="subjectList"></div>
@@ -158,6 +177,14 @@
 
       <div class="page-title">
         <h2>Progress</h2>
+      </div>
+
+      <div class="progress-hero">
+        <div>
+          <p class="eyebrow">Keep moving forward</p>
+          <h3>Small improvements become your advantage.</h3>
+          <p>Track the effort behind your results and make your next study session even better.</p>
+        </div>
       </div>
 
       <div class="card">
@@ -273,6 +300,51 @@
 
       </div>
 
+      <div class="analytics-grid">
+        <div class="analytics-card consistency-analytics">
+          <p class="eyebrow">Daily consistency</p>
+          <h3 id="consistencyValue">0%</h3>
+          <p id="consistencyInterpretation">Log a study update to begin measuring your consistency.</p>
+        </div>
+
+        <div class="analytics-card attention-analytics">
+          <p class="eyebrow">Needs attention</p>
+          <h3 id="needsImprovementValue">0 subjects</h3>
+          <p id="needsImprovementInterpretation">No subjects need improvement yet.</p>
+        </div>
+
+        <div class="analytics-card completion-analytics">
+          <p class="eyebrow">Completion outlook</p>
+          <h3 id="completionOutlookValue">0 finished</h3>
+          <p id="completionOutlookInterpretation">Add subjects to see your completion outlook.</p>
+        </div>
+      </div>
+
+      <div class="dashboard-data-grid">
+        <div class="dashboard-panel interpretation-panel">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">What your data says</p>
+              <h3>Subject interpretation</h3>
+            </div>
+          </div>
+          <div id="subjectInterpretationList" class="subject-interpretation-list"></div>
+        </div>
+
+        <div class="chart-card status-chart-card">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">At a glance</p>
+              <h3>Subject status</h3>
+            </div>
+          </div>
+          <div class="status-chart-wrap">
+            <canvas id="subjectStatusChart"></canvas>
+            <p id="subjectStatusFallback" class="empty-state hidden">Your subject status will appear after you add subjects.</p>
+          </div>
+        </div>
+      </div>
+
       <div class="dashboard-columns">
         <div class="dashboard-panel">
           <div class="panel-heading">
@@ -318,7 +390,7 @@
 
   </main>
 
-  <script src="main.js"></script>
+  <script src="main.js?v=2"></script>
 
 </body>
 </html>

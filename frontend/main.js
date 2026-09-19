@@ -11,6 +11,7 @@ const state = {
 window.addEventListener("DOMContentLoaded", () => {
 
   bindEvents();
+  loadTheme();
 
   loadUser();
 
@@ -23,6 +24,9 @@ window.addEventListener("DOMContentLoaded", () => {
 /* EVENTS */
 
 function bindEvents(){
+
+  document.getElementById("themeToggle")
+    .addEventListener("click", toggleTheme);
 
   document.getElementById("showRegister")
     .addEventListener("click", () => {
@@ -510,6 +514,7 @@ function renderDashboard(){
 
   renderAchievements();
   renderCompletedSubjects(completed);
+  renderDashboardAnalytics();
   showRandomQuote(false);
 
   renderChart();
@@ -650,4 +655,130 @@ function renderChart(){
 
   });
 
+}
+
+function loadTheme(){
+  const savedTheme = localStorage.getItem("learningTheme");
+  document.body.classList.toggle("theme-night", savedTheme === "night");
+  updateThemeButton();
+}
+
+function toggleTheme(){
+  const isNight = document.body.classList.toggle("theme-night");
+  localStorage.setItem("learningTheme", isNight ? "night" : "light");
+  updateThemeButton();
+}
+
+function updateThemeButton(){
+  const button = document.getElementById("themeToggle");
+  if(!button) return;
+  const isNight = document.body.classList.contains("theme-night");
+  button.textContent = isNight ? "Day theme" : "Night theme";
+  button.setAttribute("aria-label", isNight ? "Switch to day theme" : "Switch to night theme");
+}
+
+function getSubjectStatusData(){
+  const latestBySubject = new Map();
+
+  state.progress.forEach(item => latestBySubject.set(item.subject, item));
+
+  return state.subjects.map(subject => {
+    const latestProgress = latestBySubject.get(subject.name);
+
+    if(!latestProgress){
+      return { name: subject.name, status: "pending", score: null };
+    }
+
+    if(isCompleted(latestProgress)){
+      return { name: subject.name, status: "finished", score: latestProgress.score };
+    }
+
+    return { name: subject.name, status: "improve", score: latestProgress.score };
+  });
+}
+
+function renderDashboardAnalytics(){
+  const subjectStatuses = getSubjectStatusData();
+  const totalSubjects = subjectStatuses.length;
+  const studiedSubjects = subjectStatuses.filter(item => item.status !== "pending").length;
+  const finishedSubjects = subjectStatuses.filter(item => item.status === "finished").length;
+  const needsImprovement = subjectStatuses.filter(item => item.status === "improve");
+  const pendingSubjects = subjectStatuses.filter(item => item.status === "pending");
+  const consistency = totalSubjects === 0
+    ? 0
+    : Math.round((studiedSubjects / totalSubjects) * 100);
+
+  document.getElementById("consistencyValue").textContent = `${consistency}%`;
+  document.getElementById("consistencyInterpretation").textContent = totalSubjects === 0
+    ? "Add subjects and log study updates to measure your consistency."
+    : `${studiedSubjects} of ${totalSubjects} subject${totalSubjects === 1 ? " has" : "s have"} a logged study update.`;
+
+  document.getElementById("needsImprovementValue").textContent = `${needsImprovement.length} subject${needsImprovement.length === 1 ? "" : "s"}`;
+  document.getElementById("needsImprovementInterpretation").textContent = needsImprovement.length === 0
+    ? "No active subject is below the 70% completion mark."
+    : `${needsImprovement.map(item => item.name).join(", ")} ${needsImprovement.length === 1 ? "needs" : "need"} another focused session.`;
+
+  document.getElementById("completionOutlookValue").textContent = `${finishedSubjects} finished`;
+  document.getElementById("completionOutlookInterpretation").textContent = totalSubjects === 0
+    ? "Add subjects to see your completion outlook."
+    : `${pendingSubjects.length} yet to finish, ${needsImprovement.length} need${needsImprovement.length === 1 ? "s" : ""} improvement.`;
+
+  const interpretationList = document.getElementById("subjectInterpretationList");
+  interpretationList.innerHTML = totalSubjects === 0
+    ? '<p class="empty-state">Add subjects to receive a clear interpretation of your learning data.</p>'
+    : subjectStatuses.map(item => {
+      const label = item.status === "finished" ? "Finished" : item.status === "improve" ? "Needs improvement" : "Yet to start";
+      const detail = item.status === "finished"
+        ? `${item.score}% score recorded`
+        : item.status === "improve"
+          ? `${item.score}% score, keep practising`
+          : "No progress logged yet";
+
+      return `<div class="subject-interpretation status-${item.status}">
+        <span class="status-dot"></span>
+        <div><strong>${item.name}</strong><span>${label} · ${detail}</span></div>
+      </div>`;
+    }).join("");
+
+  renderSubjectStatusChart(finishedSubjects, needsImprovement.length, pendingSubjects.length);
+}
+
+function renderSubjectStatusChart(finishedSubjects, needsImprovement, pendingSubjects){
+  const canvas = document.getElementById("subjectStatusChart");
+  const fallback = document.getElementById("subjectStatusFallback");
+
+  if(!canvas) return;
+
+  if(typeof Chart === "undefined" || finishedSubjects + needsImprovement + pendingSubjects === 0){
+    canvas.classList.add("hidden");
+    fallback.classList.remove("hidden");
+    return;
+  }
+
+  canvas.classList.remove("hidden");
+  fallback.classList.add("hidden");
+
+  if(window.subjectStatusChartInstance){
+    window.subjectStatusChartInstance.destroy();
+  }
+
+  window.subjectStatusChartInstance = new Chart(canvas, {
+    type: "doughnut",
+    data: {
+      labels: ["Finished", "Needs improvement", "Yet to start"],
+      datasets: [{
+        data: [finishedSubjects, needsImprovement, pendingSubjects],
+        backgroundColor: ["#16866a", "#e99b45", "#b7d3dc"],
+        borderColor: "#ffffff",
+        borderWidth: 3
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: "bottom" }
+      }
+    }
+  });
 }
